@@ -458,7 +458,7 @@ type DiffPathOpt struct {
 	//   - Update x/y/[b, c]
 	// This will cause the new value to be appended in the OC, but the original value
 	// will still be present in the OC. Resultant OC in the device will be x/y/[a, b, c].
-	DeleteWithUpdateLeafList bool
+	OverrideLeafList bool
 }
 
 // IsDiffOpt marks DiffPathOpt as a diff option.
@@ -708,9 +708,8 @@ func diff(original, modified GoStruct, withAtomic bool, opts ...DiffOpt) ([]*gnm
 				return err
 			}
 			atomicNotifs = append(atomicNotifs, notif)
-		} else if diffopts != nil && diffopts.DeleteWithUpdateLeafList && isLeafList(modVal.val) && origVal != nil {
-			// Handle the leaf-list replace.
-			// Delete the original path before updating it.
+		} else if diffopts != nil && diffopts.OverrideLeafList && isLeafList(modVal.val) && origVal != nil {
+			// Handle the leaf-list replace. Delete the original path before updating it.
 			n.Delete = append(n.Delete, origVal.path)
 			if err := appendUpdate(n, path, modVal); err != nil {
 				return err

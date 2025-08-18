@@ -1703,7 +1703,7 @@ func (t *TestDiffDeleteStructChild) ΛListKeyMap() (map[string]any, error) {
 	return nil, nil
 }
 
-func TestDiffDeleteWithUpdateLeafList(t *testing.T) {
+func TestDiffOverrideLeafList(t *testing.T) {
 	tests := []struct {
 		name     string
 		original *TestDiffDeleteStruct
@@ -1719,7 +1719,7 @@ func TestDiffDeleteWithUpdateLeafList(t *testing.T) {
 		modified: &TestDiffDeleteStruct{
 			LeafList: []string{"b", "c"},
 		},
-		opts: []DiffOpt{&DiffPathOpt{DeleteWithUpdateLeafList: true}},
+		opts: []DiffOpt{&DiffPathOpt{OverrideLeafList: true}},
 		want: &gnmipb.Notification{
 			Delete: []*gnmipb.Path{
 				{Elem: []*gnmipb.PathElem{{Name: "leaf-list"}}},
@@ -1769,7 +1769,7 @@ func TestDiffDeleteWithUpdateLeafList(t *testing.T) {
 		modified: &TestDiffDeleteStruct{
 			LeafList: []string{"a", "b"},
 		},
-		opts: []DiffOpt{&DiffPathOpt{DeleteWithUpdateLeafList: true}},
+		opts: []DiffOpt{&DiffPathOpt{OverrideLeafList: true}},
 		want: &gnmipb.Notification{},
 	}, {
 		name:     "add leaf list",
@@ -1777,7 +1777,7 @@ func TestDiffDeleteWithUpdateLeafList(t *testing.T) {
 		modified: &TestDiffDeleteStruct{
 			LeafList: []string{"b", "c"},
 		},
-		opts: []DiffOpt{&DiffPathOpt{DeleteWithUpdateLeafList: true}},
+		opts: []DiffOpt{&DiffPathOpt{OverrideLeafList: true}},
 		want: &gnmipb.Notification{
 			Update: []*gnmipb.Update{{
 				Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "leaf-list"}}},
@@ -1799,7 +1799,7 @@ func TestDiffDeleteWithUpdateLeafList(t *testing.T) {
 			LeafList: []string{"a", "b"},
 		},
 		modified: &TestDiffDeleteStruct{},
-		opts:     []DiffOpt{&DiffPathOpt{DeleteWithUpdateLeafList: true}},
+		opts:     []DiffOpt{&DiffPathOpt{OverrideLeafList: true}},
 		want: &gnmipb.Notification{
 			Delete: []*gnmipb.Path{
 				{Elem: []*gnmipb.PathElem{{Name: "leaf-list"}}},
