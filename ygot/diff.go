@@ -449,7 +449,7 @@ type DiffPathOpt struct {
 	// Explicitly delete and then update leaf-list, which is different and exists in both orig and modified.
 	// For example, if the original path is x/y/[a, b] and the modified leaf-list is x/y/[b, c],
 	// Then resulting notification will contain:
-	//   - Delete x/y/[a, b]
+	//   - Delete x/y
 	//   - Update x/y/[b, c]
 	// If this is false, then the leaf-list will be updated directly to the new value
 	// without the delete step.
