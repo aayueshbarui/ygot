@@ -453,11 +453,6 @@ type DiffPathOpt struct {
 	//   - Update { Path: x/y Value: [b,c] }
 	// If this is false, then the leaf-list will be updated directly to the new value
 	// without the delete step.
-	// This is required because if the leaf-list is updated directly,
-	// the resulting notification will be:
-	//   - Update { Path: x/y Value: [b,c] }
-	// This will cause the new value to be appended in the OC, but the original value
-	// will still be present in the OC. Resultant OC in the device will be x/y/[a, b, c].
 	OverrideLeafList bool
 }
 
@@ -659,12 +654,17 @@ func createAtomicNotif(atomicLeaves []*pathval, ts int64, subtreePfx *gnmiPath) 
 	return no, nil
 }
 
-// isLeafList returns true if the value is a slice (leaf-list).
+// isLeafList returns true if the value is a leaf-list.
 func isLeafList(val any) bool {
 	if val == nil {
 		return false
 	}
-	return reflect.TypeOf(val).Kind() == reflect.Slice
+	v := reflect.TypeOf(val)
+	if v.Kind() == reflect.Slice {
+		// A []byte is a slice, but it represents a binary/string leaf, not a leaf-list.
+		return v.Elem().Kind() != reflect.Uint8
+	}
+	return false
 }
 
 // diff produces a slice of notifications given two GoStructs.

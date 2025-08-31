@@ -1685,6 +1685,7 @@ type TestDiffDeleteStruct struct {
 	Leaf       *string                               `path:"leaf"`
 	LeafList   []string                              `path:"leaf-list"`
 	OrderedMap map[string]*TestDiffDeleteStructChild `path:"ordered-map" ordered-by:"user"`
+	Binary     Binary                               `path:"binary"`
 }
 
 type TestDiffDeleteStructChild struct {
@@ -1715,9 +1716,11 @@ func TestDiffOverrideLeafList(t *testing.T) {
 		name: "delete leaf list",
 		original: &TestDiffDeleteStruct{
 			LeafList: []string{"a", "b"},
+			Binary:   Binary("binary"),
 		},
 		modified: &TestDiffDeleteStruct{
 			LeafList: []string{"b", "c"},
+			Binary:   Binary("binary-new"),
 		},
 		opts: []DiffOpt{&DiffPathOpt{OverrideLeafList: true}},
 		want: &gnmipb.Notification{
@@ -1791,18 +1794,23 @@ func TestDiffOverrideLeafList(t *testing.T) {
 						},
 					},
 				},
+			}, {
+				Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "binary"}}},
+				Val:  &gnmipb.TypedValue{Value: &gnmipb.TypedValue_BytesVal{BytesVal: []byte("binary-new")}},
 			}},
 		},
 	}, {
 		name: "delete leaf list",
 		original: &TestDiffDeleteStruct{
 			LeafList: []string{"a", "b"},
+			Binary:   Binary("binary"),
 		},
 		modified: &TestDiffDeleteStruct{},
 		opts:     []DiffOpt{&DiffPathOpt{OverrideLeafList: true}},
 		want: &gnmipb.Notification{
 			Delete: []*gnmipb.Path{
 				{Elem: []*gnmipb.PathElem{{Name: "leaf-list"}}},
+				{Elem: []*gnmipb.PathElem{{Name: "binary"}}},
 			},
 		},
 	}}
@@ -1814,7 +1822,7 @@ func TestDiffOverrideLeafList(t *testing.T) {
 				t.Errorf("Diff() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if diff := cmp.Diff(tt.want, got, protocmp.Transform()); diff != "" {
+			if diff := cmp.Diff(tt.want, got, protocmp.Transform(), protocmp.SortRepeatedFields((*gnmipb.Notification)(nil), "update", "delete")); diff != "" {
 				t.Errorf("Diff() returned unexpected diff (-want +got):\n%s", diff)
 			}
 		})
