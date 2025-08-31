@@ -1685,7 +1685,7 @@ type TestDiffDeleteStruct struct {
 	Leaf       *string                               `path:"leaf"`
 	LeafList   []string                              `path:"leaf-list"`
 	OrderedMap map[string]*TestDiffDeleteStructChild `path:"ordered-map" ordered-by:"user"`
-	Binary     Binary                               `path:"binary"`
+	Binary     Binary                                `path:"binary"`
 }
 
 type TestDiffDeleteStructChild struct {
@@ -1739,6 +1739,9 @@ func TestDiffOverrideLeafList(t *testing.T) {
 						},
 					},
 				},
+			}, {
+				Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "binary"}}},
+				Val:  &gnmipb.TypedValue{Value: &gnmipb.TypedValue_BytesVal{BytesVal: []byte("binary-new")}},
 			}},
 		},
 	}, {
@@ -1779,6 +1782,7 @@ func TestDiffOverrideLeafList(t *testing.T) {
 		original: &TestDiffDeleteStruct{},
 		modified: &TestDiffDeleteStruct{
 			LeafList: []string{"b", "c"},
+			Binary:   Binary("binary-new"),
 		},
 		opts: []DiffOpt{&DiffPathOpt{OverrideLeafList: true}},
 		want: &gnmipb.Notification{
