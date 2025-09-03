@@ -659,12 +659,9 @@ func isLeafList(val any) bool {
 	if val == nil {
 		return false
 	}
-	v := reflect.ValueOf(val)
-	if v.Type().Kind() == reflect.Slice {
-		// A Binary is a slice, but it is not a leaf-list.
-		return v.Type().Name() != BinaryTypeName
-	}
-	return false
+	v := reflect.TypeOf(val)
+	// Binary is represented as a []byte (slice), but is not a leaf-list.
+	return v.Kind() == reflect.Slice && v.Name() != BinaryTypeName
 }
 
 // diff produces a slice of notifications given two GoStructs.
