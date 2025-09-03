@@ -659,10 +659,10 @@ func isLeafList(val any) bool {
 	if val == nil {
 		return false
 	}
-	v := reflect.TypeOf(val)
-	if v.Kind() == reflect.Slice {
-		// A []byte is a slice, but it represents a binary/string leaf, not a leaf-list.
-		return v.Elem().Kind() != reflect.Uint8
+	v := reflect.ValueOf(val)
+	if v.Type().Kind() == reflect.Slice {
+		// A Binary is a slice, but it is not a leaf-list.
+		return v.Type().Name() != BinaryTypeName
 	}
 	return false
 }

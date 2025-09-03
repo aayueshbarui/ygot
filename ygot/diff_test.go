@@ -1682,10 +1682,11 @@ func TestLeastSpecificPath(t *testing.T) {
 }
 
 type TestDiffDeleteStruct struct {
-	Leaf       *string                               `path:"leaf"`
-	LeafList   []string                              `path:"leaf-list"`
-	OrderedMap map[string]*TestDiffDeleteStructChild `path:"ordered-map" ordered-by:"user"`
-	Binary     Binary                                `path:"binary"`
+	Leaf          *string                               `path:"leaf"`
+	LeafList      []string                              `path:"leaf-list"`
+	OrderedMap    map[string]*TestDiffDeleteStructChild `path:"ordered-map" ordered-by:"user"`
+	Binary        Binary                                `path:"binary"`
+	UInt8LeafList []uint8                               `path:"u-int8-leaf-list"`
 }
 
 type TestDiffDeleteStructChild struct {
@@ -1715,17 +1716,21 @@ func TestDiffOverrideLeafList(t *testing.T) {
 	}{{
 		name: "delete leaf list",
 		original: &TestDiffDeleteStruct{
-			LeafList: []string{"a", "b"},
-			Binary:   Binary("binary"),
+			LeafList:      []string{"a", "b"},
+			Binary:        Binary("binary-old"),
+			UInt8LeafList: []uint8{1, 2, 3},
 		},
 		modified: &TestDiffDeleteStruct{
-			LeafList: []string{"b", "c"},
-			Binary:   Binary("binary-new"),
+			LeafList:      []string{"b", "c"},
+			Binary:        Binary("binary-new"),
+			UInt8LeafList: []uint8{4, 5, 6},
 		},
 		opts: []DiffOpt{&DiffPathOpt{OverrideLeafList: true}},
 		want: &gnmipb.Notification{
 			Delete: []*gnmipb.Path{
 				{Elem: []*gnmipb.PathElem{{Name: "leaf-list"}}},
+				{Elem: []*gnmipb.PathElem{{Name: "u-int8-leaf-list"}}},
+				// Binary is not deleted because it is not a leaf-list.
 			},
 			Update: []*gnmipb.Update{{
 				Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "leaf-list"}}},
@@ -1742,15 +1747,30 @@ func TestDiffOverrideLeafList(t *testing.T) {
 			}, {
 				Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "binary"}}},
 				Val:  &gnmipb.TypedValue{Value: &gnmipb.TypedValue_BytesVal{BytesVal: []byte("binary-new")}},
+			}, {
+				Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "u-int8-leaf-list"}}},
+				Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_LeaflistVal{
+					LeaflistVal: &gnmipb.ScalarArray{
+						Element: []*gnmipb.TypedValue{
+							{Value: &gnmipb.TypedValue_UintVal{4}},
+							{Value: &gnmipb.TypedValue_UintVal{5}},
+							{Value: &gnmipb.TypedValue_UintVal{6}},
+						},
+					},
+				}},
 			}},
 		},
 	}, {
 		name: "no delete leaf list",
 		original: &TestDiffDeleteStruct{
-			LeafList: []string{"a", "b"},
+			LeafList:      []string{"a", "b"},
+			Binary:        Binary("binary-old"),
+			UInt8LeafList: []uint8{1, 2, 3},
 		},
 		modified: &TestDiffDeleteStruct{
-			LeafList: []string{"b", "c"},
+			LeafList:      []string{"b", "c"},
+			UInt8LeafList: []uint8{4, 5, 6},
+			Binary:        Binary("binary-new"),
 		},
 		want: &gnmipb.Notification{
 			Update: []*gnmipb.Update{{
@@ -1765,6 +1785,20 @@ func TestDiffOverrideLeafList(t *testing.T) {
 						},
 					},
 				},
+			}, {
+				Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "binary"}}},
+				Val:  &gnmipb.TypedValue{Value: &gnmipb.TypedValue_BytesVal{BytesVal: []byte("binary-new")}},
+			}, {
+				Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "u-int8-leaf-list"}}},
+				Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_LeaflistVal{
+					LeaflistVal: &gnmipb.ScalarArray{
+						Element: []*gnmipb.TypedValue{
+							{Value: &gnmipb.TypedValue_UintVal{4}},
+							{Value: &gnmipb.TypedValue_UintVal{5}},
+							{Value: &gnmipb.TypedValue_UintVal{6}},
+						},
+					},
+				}},
 			}},
 		},
 	}, {
@@ -1781,8 +1815,9 @@ func TestDiffOverrideLeafList(t *testing.T) {
 		name:     "add leaf list",
 		original: &TestDiffDeleteStruct{},
 		modified: &TestDiffDeleteStruct{
-			LeafList: []string{"b", "c"},
-			Binary:   Binary("binary-new"),
+			LeafList:      []string{"b", "c"},
+			Binary:        Binary("binary-new"),
+			UInt8LeafList: []uint8{4, 5, 6},
 		},
 		opts: []DiffOpt{&DiffPathOpt{OverrideLeafList: true}},
 		want: &gnmipb.Notification{
@@ -1801,13 +1836,25 @@ func TestDiffOverrideLeafList(t *testing.T) {
 			}, {
 				Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "binary"}}},
 				Val:  &gnmipb.TypedValue{Value: &gnmipb.TypedValue_BytesVal{BytesVal: []byte("binary-new")}},
+			}, {
+				Path: &gnmipb.Path{Elem: []*gnmipb.PathElem{{Name: "u-int8-leaf-list"}}},
+				Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_LeaflistVal{
+					LeaflistVal: &gnmipb.ScalarArray{
+						Element: []*gnmipb.TypedValue{
+							{Value: &gnmipb.TypedValue_UintVal{4}},
+							{Value: &gnmipb.TypedValue_UintVal{5}},
+							{Value: &gnmipb.TypedValue_UintVal{6}},
+						},
+					},
+				}},
 			}},
 		},
 	}, {
 		name: "delete leaf list",
 		original: &TestDiffDeleteStruct{
-			LeafList: []string{"a", "b"},
-			Binary:   Binary("binary"),
+			LeafList:      []string{"a", "b"},
+			Binary:        Binary("binary"),
+			UInt8LeafList: []uint8{1, 2, 3},
 		},
 		modified: &TestDiffDeleteStruct{},
 		opts:     []DiffOpt{&DiffPathOpt{OverrideLeafList: true}},
@@ -1815,6 +1862,7 @@ func TestDiffOverrideLeafList(t *testing.T) {
 			Delete: []*gnmipb.Path{
 				{Elem: []*gnmipb.PathElem{{Name: "leaf-list"}}},
 				{Elem: []*gnmipb.PathElem{{Name: "binary"}}},
+				{Elem: []*gnmipb.PathElem{{Name: "u-int8-leaf-list"}}},
 			},
 		},
 	}}
